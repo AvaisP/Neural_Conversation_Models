@@ -114,7 +114,7 @@ def create_model(session, forward_only, beam_search, beam_size = 10, attention =
     model.saver.restore(session, ckpt.model_checkpoint_path)
   else:
     print("Created model with fresh parameters.")
-    session.run(tf.initialize_all_variables())
+    session.run(tf.global_variables_initializer())
   return model
 
 def create_models(path, en_vocab_size, session, forward_only, beam_search, beam_size = 10, attention = True):
@@ -134,7 +134,7 @@ def create_models(path, en_vocab_size, session, forward_only, beam_search, beam_
     model.saver.restore(session, ckpt.model_checkpoint_path)
   else:
     print("Created model with fresh parameters.")
-    session.run(tf.initialize_all_variables())
+    session.run(tf.global_variables_initializer())
   return model
 
 def train():

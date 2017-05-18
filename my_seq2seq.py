@@ -37,16 +37,20 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import embedding_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import nn_ops
-from tensorflow.python.ops import rnn
-from tensorflow.python.ops import rnn_cell
+# from tensorflow.python.ops import rnn
+# from tensorflow.contrib.rnn.python.ops import rnn
+# from tensorflow.contrib import rnn
+from tensorflow.contrib.rnn.python.ops import core_rnn
+from tensorflow.contrib.rnn.python.ops import core_rnn_cell as rnn_cell
 from tensorflow.python.ops import variable_scope
 import tensorflow as tf
 
 try:
-  linear = tf.nn.rnn_cell.linear
+  # linear = tf.nn.rnn_cell.linear
+  linear = tensorflow.contrib.rnn.python.ops.core_rnn_cell_impl.linear
 except:
-  from tensorflow.python.ops.rnn_cell import _linear as linear
-  
+  from tensorflow.contrib.rnn.python.ops.core_rnn_cell_impl import _linear as linear
+
 
 def _extract_argmax_and_embed(embedding, output_projection=None,
                               update_embedding=True):
@@ -220,11 +224,11 @@ def beam_rnn_decoder(decoder_inputs, initial_state, cell, loop_function=None,
           states =[]
           for kk in range(beam_size):
                 states.append(state)
-          state = tf.reshape(tf.concat(0, states), [-1, state_size])
+          state = tf.reshape(tf.concat(axis=0, values=states), [-1, state_size])
 
       outputs.append(tf.argmax(nn_ops.xw_plus_b(
-          output, output_projection[0], output_projection[1]), dimension=1))
-  return outputs, state, tf.reshape(tf.concat(0, beam_path),[-1,beam_size]), tf.reshape(tf.concat(0, beam_symbols),[-1,beam_size])
+          output, output_projection[0], output_projection[1]), axis=1))
+  return outputs, state, tf.reshape(tf.concat(axis=0, values=beam_path),[-1,beam_size]), tf.reshape(tf.concat(axis=0, values=beam_symbols),[-1,beam_size])
 
 
 def embedding_rnn_decoder(decoder_inputs, initial_state, cell, num_symbols,
@@ -352,7 +356,7 @@ def embedding_rnn_seq2seq(encoder_inputs, decoder_inputs, cell,
     encoder_cell = rnn_cell.EmbeddingWrapper(
         cell, embedding_classes=num_encoder_symbols,
         embedding_size=embedding_size)
-    _, encoder_state = rnn.rnn(encoder_cell, encoder_inputs, dtype=dtype)
+    _, encoder_state = core_rnn.static_rnn(encoder_cell, encoder_inputs, dtype=dtype)
 
     # Decoder.
     if output_projection is None:
@@ -473,7 +477,7 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
 
     outputs = []
     prev = None
-    batch_attn_size = array_ops.pack([batch_size, attn_size])
+    batch_attn_size = array_ops.stack([batch_size, attn_size])
     attns = [array_ops.zeros(batch_attn_size, dtype=dtype)
              for _ in xrange(num_heads)]
     for a in attns:  # Ensure the second shape of attention vectors is set.
@@ -601,7 +605,7 @@ def beam_attention_decoder(decoder_inputs, initial_state, attention_states, cell
     states =[]
     for kk in range(1):
         states.append(initial_state)
-    state = tf.reshape(tf.concat(0, states), [-1, state_size])
+    state = tf.reshape(tf.concat(axis=0, values=states), [-1, state_size])
     def attention(query):
       """Put attention masks on hidden using hidden_features and query."""
       ds = []  # Results of attention reads will be stored here.
@@ -623,7 +627,7 @@ def beam_attention_decoder(decoder_inputs, initial_state, attention_states, cell
 
     outputs = []
     prev = None
-    batch_attn_size = array_ops.pack([batch_size, attn_size])
+    batch_attn_size = array_ops.stack([batch_size, attn_size])
     attns = [array_ops.zeros(batch_attn_size, dtype=dtype)
              for _ in xrange(num_heads)]
     for a in attns:  # Ensure the second shape of attention vectors is set.
@@ -632,7 +636,7 @@ def beam_attention_decoder(decoder_inputs, initial_state, attention_states, cell
     if initial_state_attention:
        attns = []
        attns.append(attention(initial_state))
-       tmp = tf.reshape(tf.concat(0, attns), [-1, attn_size])
+       tmp = tf.reshape(tf.concat(axis=0, values=attns), [-1, attn_size])
        attns = []
        attns.append(tmp)
 
@@ -667,14 +671,14 @@ def beam_attention_decoder(decoder_inputs, initial_state, attention_states, cell
           states =[]
           for kk in range(beam_size):
                 states.append(state)
-          state = tf.reshape(tf.concat(0, states), [-1, state_size])
+          state = tf.reshape(tf.concat(axis=0, values=states), [-1, state_size])
           with variable_scope.variable_scope(variable_scope.get_variable_scope(), reuse=True):
                 attns = attention(state)
 
       outputs.append(tf.argmax(nn_ops.xw_plus_b(
-          output, output_projection[0], output_projection[1]), dimension=1))
+          output, output_projection[0], output_projection[1]), axis=1))
 
-  return outputs, state, tf.reshape(tf.concat(0, beam_path),[-1,beam_size]), tf.reshape(tf.concat(0, beam_symbols),[-1,beam_size])
+  return outputs, state, tf.reshape(tf.concat(axis=0, values=beam_path),[-1,beam_size]), tf.reshape(tf.concat(axis=0, values=beam_symbols),[-1,beam_size])
 
 def embedding_attention_decoder(decoder_inputs, initial_state, attention_states,
                                 cell, num_symbols, embedding_size, num_heads=1,
@@ -762,7 +766,7 @@ def embedding_attention_decoder(decoder_inputs, initial_state, attention_states,
             initial_state_attention=initial_state_attention)
 
 
-def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, cell,
+def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, cell_1,cell_2,
                                 num_encoder_symbols, num_decoder_symbols,
                                 embedding_size,
                                 num_heads=1, output_projection=None,
@@ -812,27 +816,29 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, cell,
   with variable_scope.variable_scope(scope or "embedding_attention_seq2seq"):
     # Encoder.
     encoder_cell = rnn_cell.EmbeddingWrapper(
-        cell, embedding_classes=num_encoder_symbols,
-        embedding_size=embedding_size)
-    encoder_outputs, encoder_state = rnn.rnn(
-        encoder_cell, encoder_inputs, dtype=dtype)
+        cell_1, embedding_classes=num_encoder_symbols,
+        embedding_size=embedding_size)#reuse=tf.get_variable_scope().reuse
+    encoder_outputs, encoder_state = core_rnn.static_rnn(
+        encoder_cell, encoder_inputs,
+        #scope='embedding_attention_decoder/attention_decoder',
+        dtype=dtype)
+    print('####### embedding_attention_seq2seq scope: {}'.format(encoder_cell))
     print("Symbols")
     print(num_encoder_symbols)
     print(num_decoder_symbols)
     # First calculate a concatenation of encoder outputs to put attention on.
-    top_states = [array_ops.reshape(e, [-1, 1, cell.output_size])
+    top_states = [array_ops.reshape(e, [-1, 1, cell_1.output_size])
                   for e in encoder_outputs]
-    attention_states = array_ops.concat(1, top_states)
+    attention_states = array_ops.concat(axis=1, values=top_states)
     print(attention_states)
+
     # Decoder.
     output_size = None
     if output_projection is None:
-      cell = rnn_cell.OutputProjectionWrapper(cell, num_decoder_symbols)
+      cell_2 = rnn_cell.OutputProjectionWrapper(cell_2, num_decoder_symbols)
       output_size = num_decoder_symbols
-
-
     return embedding_attention_decoder(
-          decoder_inputs, encoder_state, attention_states, cell,
+          decoder_inputs, encoder_state, attention_states, cell_2,
           num_decoder_symbols, embedding_size, num_heads=num_heads,
           output_size=output_size, output_projection=output_projection,
           feed_previous=feed_previous,
@@ -865,8 +871,8 @@ def sequence_loss_by_example(logits, targets, weights,
   if len(targets) != len(logits) or len(weights) != len(logits):
     raise ValueError("Lengths of logits, weights, and targets must be the same "
                      "%d, %d, %d." % (len(logits), len(weights), len(targets)))
-  with ops.op_scope(logits + targets + weights, name,
-                    "sequence_loss_by_example"):
+  with ops.name_scope( name,
+                    "sequence_loss_by_example",logits + targets + weights):
     log_perp_list = []
     for logit, target, weight in zip(logits, targets, weights):
       if softmax_loss_function is None:
@@ -906,7 +912,7 @@ def sequence_loss(logits, targets, weights,
   Raises:
     ValueError: If len(logits) is different from len(targets) or len(weights).
   """
-  with ops.op_scope(logits + targets + weights, name, "sequence_loss"):
+  with ops.name_scope( name, "sequence_loss",logits + targets + weights):
     cost = math_ops.reduce_sum(sequence_loss_by_example(
         logits, targets, weights,
         average_across_timesteps=average_across_timesteps,
@@ -966,7 +972,7 @@ def model_with_buckets(encoder_inputs, decoder_inputs, targets, weights,
   all_inputs = encoder_inputs + decoder_inputs + targets + weights
   losses = []
   outputs = []
-  with ops.op_scope(all_inputs, name, "model_with_buckets"):
+  with ops.name_scope(name, "model_with_buckets", all_inputs):
     for j, bucket in enumerate(buckets):
       with variable_scope.variable_scope(variable_scope.get_variable_scope(),
                                          reuse=True if j > 0 else None):
@@ -1036,7 +1042,7 @@ def decode_model_with_buckets(encoder_inputs, decoder_inputs, targets, weights,
   outputs = []
   beam_paths = []
   beam_symbols = []
-  with ops.op_scope(all_inputs, name, "model_with_buckets"):
+  with ops.name_scope(name, "model_with_buckets", all_inputs):
     for j, bucket in enumerate(buckets):
       with variable_scope.variable_scope(variable_scope.get_variable_scope(),
                                          reuse=True if j > 0 else None):

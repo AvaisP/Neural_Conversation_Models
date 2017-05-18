@@ -75,23 +75,31 @@ class Seq2SeqModel(object):
       def sampled_loss(inputs, labels):
         with tf.device("/cpu:0"):
           labels = tf.reshape(labels, [-1, 1])
-          return tf.nn.sampled_softmax_loss(w_t, b, inputs, labels, num_samples,
+          return tf.nn.sampled_softmax_loss(w_t, b, labels, inputs, num_samples,
                                             self.target_vocab_size)
       softmax_loss_function = sampled_loss
     # Create the internal multi-layer cell for our RNN.
-    single_cell = tf.nn.rnn_cell.GRUCell(size)
+    print('###### tf.get_variable_scope().reuse : {}'.format(tf.get_variable_scope().reuse))
+    def gru_cell():
+      return tf.contrib.rnn.core_rnn_cell.GRUCell(size, reuse=tf.get_variable_scope().reuse)#tf.get_variable_scope().reuse
+    def lstm_cell():
+      return tf.contrib.rnn.core_rnn_cell.BasicLSTMCell(size, reuse=tf.get_variable_scope().reuse)#tf.get_variable_scope().reuse
+    single_cell = gru_cell
     if use_lstm:
-      single_cell = tf.nn.rnn_cell.BasicLSTMCell(size)
-    cell = single_cell
+      single_cell = lstm_cell
+    cell = single_cell()
     if num_layers > 1:
-      cell = tf.nn.rnn_cell.MultiRNNCell([single_cell] * num_layers, state_is_tuple=False)
+      cell_1 = tf.contrib.rnn.core_rnn_cell.MultiRNNCell([single_cell() for _ in range(num_layers)], state_is_tuple=False)
+      cell_2 = tf.contrib.rnn.core_rnn_cell.MultiRNNCell([single_cell() for _ in range(num_layers)], state_is_tuple=False)
 
     # The seq2seq function: we use embedding for the input and attention.
+    print('##### num_layers: {} #####'.format(num_layers))
+    print('##### {} #####'.format(output_projection))
     def seq2seq_f(encoder_inputs, decoder_inputs, do_decode):
         if attention:
             print("Attention Model")
             return embedding_attention_seq2seq(
-               encoder_inputs, decoder_inputs, cell,
+               encoder_inputs, decoder_inputs, cell_1, cell_2,
                num_encoder_symbols=source_vocab_size,
                num_decoder_symbols=target_vocab_size,
                embedding_size=size,
@@ -172,7 +180,7 @@ class Seq2SeqModel(object):
         self.updates.append(opt.apply_gradients(
             zip(clipped_gradients, params), global_step=self.global_step))
 
-    self.saver = tf.train.Saver(tf.all_variables())
+    self.saver = tf.train.Saver(tf.global_variables())
 
   def step(self, session, encoder_inputs, decoder_inputs, target_weights,
            bucket_id, forward_only, beam_search):
