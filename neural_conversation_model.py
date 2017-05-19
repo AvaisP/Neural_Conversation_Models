@@ -243,7 +243,7 @@ def decode():
         sentence = sys.stdin.readline()
         while sentence:
           # Get token-ids for the input sentence.
-          token_ids = sentence_to_token_ids(tf.compat.as_bytes(sentence), vocab)
+          token_ids = sentence_to_token_ids(sentence, vocab)#tf.compat.as_bytes(sentence)
           # Which bucket does it belong to?
           bucket_id = min([b for b in xrange(len(_buckets))
                            if _buckets[b][0] > len(token_ids)])
@@ -259,7 +259,7 @@ def decode():
           paths = []
           for kk in range(beam_size):
               paths.append([])
-          curr = range(beam_size)
+          curr = list(range(beam_size))
           num_steps = len(path)
           for i in range(num_steps-1, -1, -1):
               for kk in range(beam_size):

@@ -52,8 +52,8 @@ cell = single_cell()
 if num_layers > 1:
   cell = tf.contrib.rnn.MultiRNNCell([single_cell() for _ in range(num_layers)], state_is_tuple=False)
 ```
-- seq2seq_model.py: `` --> ``
-- seq2seq_model.py: `` --> ``
+- neural_conversation_model.py: `curr = range(beam_size) ` --> `curr = list(range(beam_size))`
+- neural_conversation_model.py: `sentence_to_token_ids(tf.compat.as_bytes(sentence), vocab)` --> `sentence_to_token_ids(sentence, vocab)`
 
 
 Prerequisites
