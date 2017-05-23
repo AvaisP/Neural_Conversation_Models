@@ -42,15 +42,17 @@ if num_layers > 1:
 -------->
 ```python
 def gru_cell():
-    return tf.contrib.rnn.GRUCell(size, reuse=tf.get_variable_scope().reuse)
+  return tf.contrib.rnn.core_rnn_cell.GRUCell(size, reuse=tf.get_variable_scope().reuse)#tf.get_variable_scope().reuse
 def lstm_cell():
-    return tf.contrib.rnn.BasicLSTMCell(size, reuse=tf.get_variable_scope().reuse)
+  return tf.contrib.rnn.core_rnn_cell.BasicLSTMCell(size, reuse=tf.get_variable_scope().reuse)#tf.get_variable_scope().reuse
 single_cell = gru_cell
 if use_lstm:
   single_cell = lstm_cell
 cell = single_cell()
 if num_layers > 1:
-  cell = tf.contrib.rnn.MultiRNNCell([single_cell() for _ in range(num_layers)], state_is_tuple=False)
+  cell_1 = tf.contrib.rnn.core_rnn_cell.MultiRNNCell([single_cell() for _ in range(num_layers)], state_is_tuple=False)
+  cell_2 = tf.contrib.rnn.core_rnn_cell.MultiRNNCell([single_cell() for _ in range(num_layers)], state_is_tuple=False)
+
 ```
 - neural_conversation_model.py: `curr = range(beam_size) ` --> `curr = list(range(beam_size))`
 - neural_conversation_model.py: `sentence_to_token_ids(tf.compat.as_bytes(sentence), vocab)` --> `sentence_to_token_ids(sentence, vocab)`
