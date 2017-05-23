@@ -70,8 +70,7 @@ _buckets = [(5, 10), (10, 15), (20, 25), (40, 50)]
 def read_chat_data(data_path,vocabulary_path, max_size=None):
     counter = 0
     vocab, _ = initialize_vocabulary(vocabulary_path)
-    print(len(vocab))
-    print(max_size)
+    print("vocab number: ".format(len(vocab)))
     data_set = [[] for _ in _buckets]
     # http://stackoverflow.com/questions/33054527/python-3-5-typeerror-a-bytes-like-object-is-required-not-str-when-writing-t
     with codecs.open(data_path, "rb") as fi:
@@ -83,7 +82,7 @@ def read_chat_data(data_path,vocabulary_path, max_size=None):
             if counter % 10000 == 0:
               print("  reading data line %d" % counter)
               sys.stdout.flush()
-            entities = line.lower().split("\t")
+            entities = line.lower().split("|")
             # print entities
             if len(entities) == 2:
                 source = entities[0]

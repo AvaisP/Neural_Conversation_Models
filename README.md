@@ -15,6 +15,10 @@ Examples of basic model can be found in this paper.
 https://arxiv.org/abs/1702.05512
 
 
+File list
+---------------
+- read_chat_data_test.py: 测试读入数据的格式
+
 Convert to tf 1.0
 ---------------
 - my_seq2seq.py: `from tensorflow.python.ops import rnn` --> `from tensorflow.contrib.rnn.python.ops import core_rnn`
@@ -56,7 +60,7 @@ if num_layers > 1:
 ```
 - neural_conversation_model.py: `curr = range(beam_size) ` --> `curr = list(range(beam_size))`
 - neural_conversation_model.py: `sentence_to_token_ids(tf.compat.as_bytes(sentence), vocab)` --> `sentence_to_token_ids(sentence, vocab)`
-
+- neural_conversation_model.py: `entities = line.lower().split("\t")` --> `entities = line.lower().split("|")`
 
 Prerequisites
 -------------
