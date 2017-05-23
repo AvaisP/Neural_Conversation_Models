@@ -61,9 +61,9 @@ if num_layers > 1:
 Prerequisites
 -------------
 
-- Python Python 3.3+
+- Python Python 3.3+ --> Python 3.6
 - [NLTK](http://www.nltk.org/)
-- [TensorFlow](https://www.tensorflow.org/) 0.12.1
+- [TensorFlow](https://www.tensorflow.org/) 0.12.1 --> TensorFlow 1.1.0
 
 Installations
 -----
