@@ -15,9 +15,14 @@ Examples of basic model can be found in this paper.
 https://arxiv.org/abs/1702.05512
 
 
+Usage
+--------
+    $ CUDA_VISIBLE_DEVICES=2 python neural_conversation_model.py --train_dir ubuntu/ --en_vocab_size 1699 --size 512 --data_path ubuntu/my_train_2 --dev_data ubuntu/my_train_2  --vocab_path ubuntu/my_train_2_vocab --attention
+    $ CUDA_VISIBLE_DEVICES=2 python neural_conversation_model.py --train_dir ubuntu/ --en_vocab_size 1699 --size 512 --data_path ubuntu/my_train_2 --dev_data ubuntu/my_train_2  --vocab_path ubuntu/my_train_2_vocab --attention --decode --beam_search --beam_size 25
+
 File list
 ---------------
-- read_chat_data_test.py: 测试读入数据的格式
+- read_chat_data_test.py: test the format of text data red in.
 
 Convert to tf 1.0
 ---------------
