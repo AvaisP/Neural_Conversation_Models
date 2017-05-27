@@ -4,3 +4,5 @@ ubuntu
 __pycache__
 dada
 .DS_Store
+train*
+log*
