@@ -29,6 +29,8 @@ from  data_utils import *
 from  seq2seq_model import *
 import codecs
 
+
+train_dir_in = './train_{}/'.format(int(time.time()))
 tf.app.flags.DEFINE_float("learning_rate", 0.5, "Learning rate.")
 tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99,
                           "Learning rate decays by this much.")
@@ -39,7 +41,7 @@ tf.app.flags.DEFINE_integer("batch_size", 64,
 tf.app.flags.DEFINE_integer("size", 512, "Size of each model layer.")
 tf.app.flags.DEFINE_integer("num_layers", 3, "Number of layers in the model.")
 tf.app.flags.DEFINE_integer("en_vocab_size", 40000, "English vocabulary size.")
-tf.app.flags.DEFINE_string("train_dir", "./tmp/", "Training directory.")
+tf.app.flags.DEFINE_string("train_dir", train_dir_in, "Training directory.") #"./tmp/"
 tf.app.flags.DEFINE_string("vocab_path", "./tmp/", "Data directory")
 tf.app.flags.DEFINE_string("data_path", "./tmp/", "Training directory.")
 tf.app.flags.DEFINE_string("dev_data", "./tmp/", "Data directory")

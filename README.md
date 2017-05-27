@@ -17,8 +17,10 @@ https://arxiv.org/abs/1702.05512
 
 Usage
 --------
-    $ CUDA_VISIBLE_DEVICES=2 python neural_conversation_model.py --train_dir ubuntu/ --en_vocab_size 1699 --size 512 --data_path ubuntu/my_train_2 --dev_data ubuntu/my_train_2  --vocab_path ubuntu/my_train_2_vocab --attention
-    $ CUDA_VISIBLE_DEVICES=2 python neural_conversation_model.py --train_dir ubuntu/ --en_vocab_size 1699 --size 512 --data_path ubuntu/my_train_2 --dev_data ubuntu/my_train_2  --vocab_path ubuntu/my_train_2_vocab --attention --decode --beam_search --beam_size 25
+    $ CUDA_VISIBLE_DEVICES=3 python neural_conversation_model.py --en_vocab_size=40000 --size=256 --data_path=/home/data/ljc/film_caption/corpus_ncm/film_data --vocab_path=/home/data/ljc/film_caption/corpus_ncm/film_vocab_most --dev_data=/home/data/ljc/film_caption/corpus_ncm/film_data --attention
+
+    $ CUDA_VISIBLE_DEVICES=3 python neural_conversation_model.py --train_dir ubuntu/ --en_vocab_size 1699 --size 512 --data_path ubuntu/my_train_2 --dev_data ubuntu/my_train_2  --vocab_path ubuntu/my_train_2_vocab --attention
+    $ CUDA_VISIBLE_DEVICES=3 python neural_conversation_model.py --train_dir ubuntu/ --en_vocab_size 1699 --size 512 --data_path ubuntu/my_train_2 --dev_data ubuntu/my_train_2  --vocab_path ubuntu/my_train_2_vocab --attention --decode --beam_search --beam_size 25
 
 File list
 ---------------
